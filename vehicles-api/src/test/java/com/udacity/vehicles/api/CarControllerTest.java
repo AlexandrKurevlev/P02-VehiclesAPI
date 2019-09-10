@@ -1,13 +1,9 @@
 package com.udacity.vehicles.api;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,7 +29,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 /**
@@ -87,6 +82,17 @@ public class CarControllerTest {
                 .andExpect(status().isCreated());
     }
 
+    @Test
+    public void updateCar() throws Exception {
+        Car updatedCar = getCar();
+        updatedCar.getDetails().setModel("Tahoe");
+
+        ResultActions result = mvc.perform(put(new URI("/cars/1")))
+                .andExpect(status().isOk());
+
+        verifyJson(result, updatedCar, "");
+    }
+
     /**
      * Tests if the read operation appropriately returns a list of vehicles.
      * @throws Exception if the read operation of the vehicle list fails
@@ -96,7 +102,7 @@ public class CarControllerTest {
         ResultActions result = mvc.perform(get(new URI("/cars")))
                 .andExpect(status().isOk());
 
-        verifyJson(result, "_embedded.carList[0].");
+        verifyJson(result, getCar(),"_embedded.carList[0].");
 
     }
 
@@ -109,7 +115,7 @@ public class CarControllerTest {
         ResultActions result = mvc.perform(get(new URI("/cars/1")))
                 .andExpect(status().isOk());
 
-        verifyJson(result, "");
+        verifyJson(result, getCar(), "");
     }
 
     /**
@@ -122,8 +128,7 @@ public class CarControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    private void verifyJson(ResultActions action, String jsonPrefix) throws Exception {
-        Car resultCar = getCar();
+    private void verifyJson(ResultActions action, Car resultCar, String jsonPrefix) throws Exception {
         action.andExpect(jsonPath(jsonPrefix + "details.body", is(resultCar.getDetails().getBody())));
         action.andExpect(jsonPath(jsonPrefix + "details.model", is(resultCar.getDetails().getModel())));
     }
